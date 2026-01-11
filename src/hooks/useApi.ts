@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import axios, { AxiosInstance, AxiosError } from "axios";
 import toast from "react-hot-toast";
 
-const API_BASE_URL = "/api/backend";
+const API_BASE_URL = "/api";
 
 interface ApiResult<T> {
   data?: T;

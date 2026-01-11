@@ -3,7 +3,7 @@ const nextConfig = {
   async rewrites() {
     return [
       {
-        source: "/api/backend/:path*",
+        source: "/api/:path*",
         destination: "http://localhost:8000/:path*",
       },
     ];
@@ -11,7 +11,7 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: "/api/backend/:path*",
+        source: "/api/:path*",
         headers: [
           { key: "Access-Control-Allow-Credentials", value: "true" },
           { key: "Access-Control-Allow-Origin", value: "*" },
