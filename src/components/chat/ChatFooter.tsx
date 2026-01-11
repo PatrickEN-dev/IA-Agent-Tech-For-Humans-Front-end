@@ -4,7 +4,6 @@ import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ChatInput } from "./ChatInput";
 import type { ChatState } from "@/types/chat";
-import { PLACEHOLDERS } from "@/constants/messages";
 
 interface ChatFooterProps {
   currentState: ChatState;
@@ -16,15 +15,13 @@ interface ChatFooterProps {
 function getPlaceholder(state: ChatState): string {
   switch (state) {
     case "collecting_cpf":
-      return PLACEHOLDERS.CPF;
+      return "Digite seu CPF (apenas números)...";
     case "collecting_birthdate":
-      return PLACEHOLDERS.BIRTHDATE;
-    case "collecting_limit":
-      return PLACEHOLDERS.LIMIT;
-    case "collecting_interview":
-      return PLACEHOLDERS.INTERVIEW;
+      return "Digite sua data de nascimento (DD/MM/AAAA)...";
+    case "chat":
+      return "Digite sua mensagem...";
     default:
-      return PLACEHOLDERS.DEFAULT;
+      return "Digite sua resposta...";
   }
 }
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import type { InterviewStep } from "@/types/chat";
 import { apiService } from "@/services/api.service";
 import { formatCurrency } from "@/lib/utils";
 import {
@@ -11,6 +10,8 @@ import {
   NO_ANSWERS,
 } from "@/constants/interview";
 import { EmploymentType, InterviewRequest } from "@/types/api";
+
+type InterviewStep = "renda" | "emprego" | "despesas" | "dependentes" | "dividas" | "complete";
 
 interface InterviewData {
   renda_mensal?: number;

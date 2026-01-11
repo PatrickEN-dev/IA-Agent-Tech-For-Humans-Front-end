@@ -8,6 +8,14 @@ export interface LimitIncreaseRequest {
   new_limit: number;
 }
 
+export interface ChatRequest {
+  message: string;
+  conversation_history?: Array<{
+    role: "user" | "assistant";
+    content: string;
+  }>;
+}
+
 export interface InterviewRequest {
   renda_mensal: number;
   tipo_emprego: EmploymentType;
@@ -52,6 +60,13 @@ export interface InterviewResponse {
   new_score: number;
   recommendation: string;
   redirect_to: string;
+}
+
+export interface ChatResponse {
+  response: string;
+  intent?: string;
+  requires_auth?: boolean;
+  next_step?: string;
 }
 
 export interface ExchangeRateResponse {

@@ -1,18 +1,14 @@
 "use client";
 
-import { useEffect, useCallback, useState, useRef } from "react";
+import { useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useChat } from "@/hooks/useChat";
-import { useInterview } from "@/hooks/useInterview";
 import { useChatHandlers } from "@/hooks/useChatHandlers";
-import { MESSAGES } from "@/constants/messages";
 import { ChatHeader } from "./ChatHeader";
 import { ChatMessages } from "./ChatMessages";
 import { ChatFooter } from "./ChatFooter";
 
 export function ChatContainer() {
-  const [isInitialized, setIsInitialized] = useState(false);
-  const initializationRef = useRef(false);
   const { cpf, setCpf, authenticate, logout } = useAuth();
 
   const {
@@ -26,59 +22,20 @@ export function ChatContainer() {
     resetChat,
   } = useChat();
 
-  const handleInterviewComplete = useCallback(
-    (message: string) => {
-      addMessage("assistant", message);
-      setCurrentState("chat");
-    },
-    [addMessage, setCurrentState]
-  );
-
-  const handleInterviewError = useCallback(
-    (message: string) => {
-      addMessage("assistant", message);
-      setCurrentState("chat");
-    },
-    [addMessage, setCurrentState]
-  );
-
-  const { processInput: processInterviewInput, reset: resetInterview } = useInterview(
-    handleInterviewComplete,
-    handleInterviewError
-  );
-
-  const {
-    handleCpfInput,
-    handleBirthdateInput,
-    handleLimitInput,
-    handleChatInput,
-    handleInterviewInput,
-  } = useChatHandlers({
-    cpf,
-    setCpf,
-    authenticate,
-    addMessage,
-    setCurrentState,
-    processInterviewInput,
-  });
-
-  useEffect(() => {
-    if (!initializationRef.current && messages.length === 0 && !isInitialized) {
-      initializationRef.current = true;
-      setIsInitialized(true);
-      addMessage("assistant", MESSAGES.WELCOME);
-      setCurrentState("collecting_cpf");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const { handleCpfInput, handleBirthdateInput, handleChatInput, handleGeneralInput } =
+    useChatHandlers({
+      cpf,
+      setCpf,
+      authenticate,
+      addMessage,
+      setCurrentState,
+      messages,
+    });
 
   const handleLogout = useCallback(() => {
     logout();
     resetChat();
-    resetInterview();
-    setIsInitialized(false);
-    initializationRef.current = false;
-  }, [logout, resetChat, resetInterview]);
+  }, [logout, resetChat]);
 
   const handleSendMessage = useCallback(
     async (message: string) => {
@@ -95,19 +52,16 @@ export function ChatContainer() {
           case "collecting_birthdate":
             await handleBirthdateInput(message);
             break;
-          case "collecting_limit":
-            await handleLimitInput(message);
-            break;
-          case "collecting_interview":
-            await handleInterviewInput(message);
-            break;
           case "chat":
             await handleChatInput(message);
+            break;
+          default:
+            await handleGeneralInput(message);
             break;
         }
       } catch (err) {
         console.error("Error:", err);
-        addMessage("assistant", MESSAGES.GENERIC_ERROR);
+        addMessage("assistant", "Algo inesperado aconteceu. Tente novamente.");
       } finally {
         setIsLoading(false);
       }
@@ -118,13 +72,12 @@ export function ChatContainer() {
       setIsLoading,
       handleCpfInput,
       handleBirthdateInput,
-      handleLimitInput,
       handleChatInput,
-      handleInterviewInput,
+      handleGeneralInput,
     ]
   );
 
-  const showLogout = currentState !== "welcome" && currentState !== "collecting_cpf";
+  const showLogout = currentState === "chat";
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">

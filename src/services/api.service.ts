@@ -3,6 +3,8 @@ import toast from "react-hot-toast";
 import type {
   AuthRequest,
   AuthResponse,
+  ChatRequest,
+  ChatResponse,
   CreditLimitResponse,
   LimitIncreaseRequest,
   LimitIncreaseResponse,
@@ -106,6 +108,16 @@ class ApiService {
         this.setToken(response.data.token);
       }
 
+      return response.data;
+    } catch (error) {
+      this.handleError(error as AxiosError);
+      return null;
+    }
+  }
+
+  async sendChatMessage(data: ChatRequest): Promise<ChatResponse | null> {
+    try {
+      const response = await this.client.post<ChatResponse>("/chat", data);
       return response.data;
     } catch (error) {
       this.handleError(error as AxiosError);

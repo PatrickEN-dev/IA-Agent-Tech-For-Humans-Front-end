@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import { apiService } from "@/services/api.service";
 import type { ChatMessage, ChatState } from "@/types/chat";
 
 function generateId(): string {
@@ -39,6 +40,44 @@ export function useChat(): UseChatReturn {
       },
     ]);
   }, []);
+
+  const initializeChat = useCallback(async () => {
+    if (messages.length === 0 && currentState === "welcome") {
+      setIsLoading(true);
+      try {
+        const response = await apiService.sendChatMessage({
+          message: "iniciar",
+          conversation_history: [],
+        });
+
+        if (response) {
+          addMessage("assistant", response.response);
+          if (response.next_step === "collect_cpf") {
+            setCurrentState("collecting_cpf");
+          }
+        }
+
+        if (!response) {
+          addMessage(
+            "assistant",
+            "Algo inesperado aconteceu ao iniciar o chat. Tente recarregar a página."
+          );
+        }
+      } catch {
+        // Se houver erro na inicialização, informar no chat
+        addMessage(
+          "assistant",
+          "Algo inesperado aconteceu ao iniciar o chat. Tente recarregar a página."
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  }, [messages.length, currentState, addMessage]);
+
+  useEffect(() => {
+    initializeChat();
+  }, [initializeChat]);
 
   const resetChat = useCallback(() => {
     setMessages([]);
