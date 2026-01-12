@@ -1,88 +1,65 @@
-export interface AuthRequest {
-  cpf: string;
-  birthdate: string;
-  user_message?: string;
+export type MessageRole = "user" | "assistant";
+
+export interface ChatMessage {
+  role: MessageRole;
+  content: string;
 }
 
-export interface LimitIncreaseRequest {
-  new_limit: number;
-}
-
-export interface ChatRequest {
+export interface UnifiedChatRequest {
+  session_id?: string;
   message: string;
-  conversation_history?: Array<{
-    role: "user" | "assistant";
-    content: string;
-  }>;
 }
 
-export interface InterviewRequest {
-  renda_mensal: number;
-  tipo_emprego: EmploymentType;
-  despesas: number;
-  num_dependentes: number;
-  tem_dividas: boolean;
+export interface RedirectAction {
+  should_redirect: boolean;
+  target_agent?: string;
+  reason?: string;
+  suggested_action?: string;
 }
 
-export interface ExchangeRequest {
-  from: string;
-  to: string;
+export interface UnifiedChatResponse {
+  session_id: string;
+  message: string;
+  state: OrchestratorState;
+  authenticated: boolean;
+  token?: string;
+  current_agent: AgentType;
+  available_actions: string[];
+  redirect_suggestion?: RedirectAction;
 }
+
+export interface ApiError {
+  detail: string;
+  remaining_attempts?: number;
+}
+
+export type OrchestratorState =
+  | "WELCOME"
+  | "COLLECTING_CPF"
+  | "COLLECTING_BIRTHDATE"
+  | "AUTHENTICATED"
+  | "CREDIT_FLOW"
+  | "CREDIT_INCREASE_FLOW"
+  | "INTERVIEW_FLOW"
+  | "INTERVIEW_INCOME"
+  | "INTERVIEW_EMPLOYMENT"
+  | "INTERVIEW_EXPENSES"
+  | "INTERVIEW_DEPENDENTS"
+  | "INTERVIEW_DEBTS"
+  | "EXCHANGE_FLOW"
+  | "EXCHANGE_FROM"
+  | "EXCHANGE_TO"
+  | "GOODBYE";
+
+export type AgentType = "triage" | "credit" | "interview" | "exchange";
+
+export type IntentType =
+  | "credit_limit"
+  | "request_increase"
+  | "exchange_rate"
+  | "interview"
+  | "other";
 
 export interface HealthResponse {
   status: "healthy" | "unhealthy";
 }
-
-export interface AuthResponse {
-  authenticated: boolean;
-  token: string | null;
-  redirect_intent: RedirectIntent | null;
-  remaining_attempts: number;
-}
-
-export interface CreditLimitResponse {
-  cpf: string;
-  current_limit: number;
-  available_limit: number;
-  score: number;
-}
-
-export interface LimitIncreaseResponse {
-  cpf: string;
-  requested_limit: number;
-  status: LimitRequestStatus;
-  message: string;
-}
-
-export interface InterviewResponse {
-  cpf: string;
-  previous_score: number;
-  new_score: number;
-  recommendation: string;
-  redirect_to: string;
-}
-
-export interface ChatResponse {
-  response: string;
-  intent?: string;
-  requires_auth?: boolean;
-  next_step?: string;
-}
-
-export interface ExchangeRateResponse {
-  from_currency: string;
-  to_currency: string;
-  rate: number;
-  timestamp: string;
-  message: string;
-}
-
-export interface APIError {
-  detail: string;
-}
-
-export type EmploymentType = "CLT" | "FORMAL" | "PUBLICO" | "AUTONOMO" | "MEI" | "DESEMPREGADO";
-
-export type RedirectIntent = "credit_limit" | "request_increase" | "exchange_rate" | "interview";
-
-export type LimitRequestStatus = "approved" | "pending_analysis" | "denied";

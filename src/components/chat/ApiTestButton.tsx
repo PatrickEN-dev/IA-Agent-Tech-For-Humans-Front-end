@@ -1,34 +1,26 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { useApi } from "@/hooks/useApi";
-import { toast } from "@/hooks/useToast";
+import { apiService } from "@/services/api.service";
+import toast from "react-hot-toast";
 
 export function ApiTestButton() {
-  const api = useApi();
+  const [isChecking, setIsChecking] = useState(false);
 
   const testConnection = async () => {
+    setIsChecking(true);
     try {
-      const result = await api.get("/health");
-      if (result.success) {
-        toast({
-          title: "✅ Backend Online",
-          description: "Conexão estabelecida com sucesso!",
-          duration: 3000,
-        });
+      const result = await apiService.healthCheck();
+      if (result && result.status === "healthy") {
+        toast.success("Backend Online - Conexão estabelecida!");
       } else {
-        toast({
-          title: "❌ Backend Offline",
-          description: result.error || "Falha na conexão com o backend",
-          duration: 4000,
-        });
+        toast.error("Backend Offline - Falha na conexão");
       }
     } catch {
-      toast({
-        title: "❌ Erro de Conexão",
-        description: "Não foi possível conectar ao backend",
-        duration: 4000,
-      });
+      toast.error("Erro de Conexão - Não foi possível conectar ao backend");
+    } finally {
+      setIsChecking(false);
     }
   };
 
@@ -37,9 +29,10 @@ export function ApiTestButton() {
       onClick={testConnection}
       variant="ghost"
       size="sm"
+      disabled={isChecking}
       className="text-white/70 hover:text-white hover:bg-white/10 transition-all duration-200"
     >
-      • Status
+      {isChecking ? "..." : "Status"}
     </Button>
   );
 }

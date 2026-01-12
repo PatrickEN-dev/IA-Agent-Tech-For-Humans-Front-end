@@ -7,6 +7,4 @@ export interface ChatMessage {
   timestamp: Date;
 }
 
-export type ChatState = "welcome" | "collecting_cpf" | "collecting_birthdate" | "chat" | "goodbye";
-
 export type ApiStatus = "checking" | "online" | "offline";

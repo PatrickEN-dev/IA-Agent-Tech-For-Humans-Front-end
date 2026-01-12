@@ -1,30 +1,18 @@
 import axios, { AxiosInstance, AxiosError } from "axios";
-import toast from "react-hot-toast";
-import type {
-  AuthRequest,
-  AuthResponse,
-  ChatRequest,
-  ChatResponse,
-  CreditLimitResponse,
-  LimitIncreaseRequest,
-  LimitIncreaseResponse,
-  InterviewRequest,
-  InterviewResponse,
-  ExchangeRateResponse,
-  APIError,
-} from "@/types/api";
+import type { UnifiedChatResponse, ApiError, HealthResponse } from "@/types/api";
 
-const API_BASE_URL = "/api";
-const TOKEN_KEY = "banco_agil_token";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
+const API_TIMEOUT = Number(process.env.NEXT_PUBLIC_API_TIMEOUT) || 30000;
+const TOKEN_KEY = "auth_token";
+const SESSION_KEY = "chat_session_id";
 
 class ApiService {
   private client: AxiosInstance;
-  private token: string | null = null;
 
   constructor() {
     this.client = axios.create({
       baseURL: API_BASE_URL,
-      timeout: 10000,
+      timeout: API_TIMEOUT,
       headers: {
         "Content-Type": "application/json",
       },
@@ -44,55 +32,51 @@ class ApiService {
 
     this.client.interceptors.response.use(
       (response) => response,
-      (error: AxiosError<APIError>) => {
+      (error: AxiosError<ApiError>) => {
         if (error.response?.status === 401) {
           this.clearToken();
+          this.clearSession();
         }
         return Promise.reject(error);
       }
     );
   }
 
-  private handleError(error: AxiosError | Error): void {
-    let errorMessage: string;
-
-    if (axios.isAxiosError(error)) {
-      if (error.code === "ECONNREFUSED" || error.code === "ENOTFOUND") {
-        errorMessage = "Servidor indisponível. Verifique se o backend está rodando.";
-      } else if (error.response?.status === 404) {
-        errorMessage = "Recurso não encontrado";
-      } else if (error.response?.status === 401) {
-        errorMessage = "Não autorizado";
-      } else if (error.response?.status === 500) {
-        errorMessage = "Erro interno do servidor";
-      } else {
-        errorMessage = error.response?.data?.message || "Erro na requisição";
-      }
-    } else {
-      errorMessage = error.message || "Erro desconhecido";
-    }
-
-    toast.error(errorMessage);
-  }
-
   setToken(token: string): void {
-    this.token = token;
     if (typeof window !== "undefined") {
-      localStorage.setItem(TOKEN_KEY, token);
+      sessionStorage.setItem(TOKEN_KEY, token);
     }
   }
 
   getToken(): string | null {
-    if (!this.token && typeof window !== "undefined") {
-      this.token = localStorage.getItem(TOKEN_KEY);
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem(TOKEN_KEY);
     }
-    return this.token;
+    return null;
   }
 
   clearToken(): void {
-    this.token = null;
     if (typeof window !== "undefined") {
-      localStorage.removeItem(TOKEN_KEY);
+      sessionStorage.removeItem(TOKEN_KEY);
+    }
+  }
+
+  setSessionId(sessionId: string): void {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(SESSION_KEY, sessionId);
+    }
+  }
+
+  getSessionId(): string | null {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem(SESSION_KEY);
+    }
+    return null;
+  }
+
+  clearSession(): void {
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem(SESSION_KEY);
     }
   }
 
@@ -100,74 +84,47 @@ class ApiService {
     return !!this.getToken();
   }
 
-  async authenticate(data: AuthRequest): Promise<AuthResponse | null> {
+  async healthCheck(): Promise<HealthResponse | null> {
     try {
-      const response = await this.client.post<AuthResponse>("/triage/authenticate", data);
-
-      if (response.data.authenticated && response.data.token) {
-        this.setToken(response.data.token);
-      }
-
+      const response = await this.client.get<HealthResponse>("/health");
       return response.data;
-    } catch (error) {
-      this.handleError(error as AxiosError);
+    } catch {
       return null;
     }
   }
 
-  async sendChatMessage(data: ChatRequest): Promise<ChatResponse | null> {
-    try {
-      const response = await this.client.post<ChatResponse>("/chat", data);
-      return response.data;
-    } catch (error) {
-      this.handleError(error as AxiosError);
-      return null;
+  async initUnifiedChat(): Promise<UnifiedChatResponse> {
+    const response = await this.client.post<UnifiedChatResponse>("/unified/init");
+
+    this.setSessionId(response.data.session_id);
+
+    if (response.data.token) {
+      this.setToken(response.data.token);
     }
+
+    return response.data;
   }
 
-  async getCreditLimit(): Promise<CreditLimitResponse | null> {
-    try {
-      const response = await this.client.get<CreditLimitResponse>("/credit/limit");
-      return response.data;
-    } catch (error) {
-      this.handleError(error as AxiosError);
-      return null;
+  async sendUnifiedMessage(message: string): Promise<UnifiedChatResponse> {
+    const sessionId = this.getSessionId();
+
+    const response = await this.client.post<UnifiedChatResponse>("/unified/chat", {
+      session_id: sessionId,
+      message,
+    });
+
+    this.setSessionId(response.data.session_id);
+
+    if (response.data.token) {
+      this.setToken(response.data.token);
     }
+
+    return response.data;
   }
 
-  async requestLimitIncrease(data: LimitIncreaseRequest): Promise<LimitIncreaseResponse | null> {
-    try {
-      const response = await this.client.post<LimitIncreaseResponse>(
-        "/credit/request_increase",
-        data
-      );
-      return response.data;
-    } catch (error) {
-      this.handleError(error as AxiosError);
-      return null;
-    }
-  }
-
-  async submitInterview(data: InterviewRequest): Promise<InterviewResponse | null> {
-    try {
-      const response = await this.client.post<InterviewResponse>("/interview/submit", data);
-      return response.data;
-    } catch (error) {
-      this.handleError(error as AxiosError);
-      return null;
-    }
-  }
-
-  async getExchangeRate(from: string, to: string): Promise<ExchangeRateResponse | null> {
-    try {
-      const response = await this.client.get<ExchangeRateResponse>("/exchange", {
-        params: { from, to },
-      });
-      return response.data;
-    } catch (error) {
-      this.handleError(error as AxiosError);
-      return null;
-    }
+  logout(): void {
+    this.clearToken();
+    this.clearSession();
   }
 }
 
