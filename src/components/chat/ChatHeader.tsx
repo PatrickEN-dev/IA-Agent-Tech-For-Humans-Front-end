@@ -2,7 +2,6 @@
 
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { ApiTestButton } from "./ApiTestButton";
 import type { OrchestratorState, AgentType } from "@/types/api";
 
 interface ChatHeaderProps {
@@ -40,7 +39,6 @@ export function ChatHeader({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <ApiTestButton />
           {showLogout && (
             <Button
               variant="ghost"
