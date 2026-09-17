@@ -4,18 +4,18 @@ import { Avatar } from "@/components/ui/Avatar";
 
 export function TypingIndicator() {
   return (
-    <div className="flex gap-2.5 animate-message-in" role="status" aria-label="Assistente digitando">
-      <div className="w-8 shrink-0 pt-0.5">
+    <div className="flex gap-3" role="status" aria-label="Assistente digitando">
+      <div className="shrink-0 pt-5">
         <Avatar variant="assistant" />
       </div>
-      <div className="flex h-10 items-center gap-1 rounded-2xl rounded-tl-md bg-surface-2 px-4 shadow-bubble">
-        {[0, 1, 2].map((i) => (
-          <span
-            key={i}
-            className="block h-1.5 w-1.5 rounded-full bg-ink-muted/70 animate-bounce"
-            style={{ animationDelay: `${i * 150}ms` }}
-          />
-        ))}
+      <div className="flex flex-col gap-1.5">
+        <span className="text-xs font-medium text-ink">Assistente Banco Ágil</span>
+        <div className="inline-flex h-10 items-center rounded border border-line bg-surface px-4 text-sm text-ink-muted">
+          Digitando
+          <span className="animate-pulse" aria-hidden="true">
+            …
+          </span>
+        </div>
       </div>
     </div>
   );

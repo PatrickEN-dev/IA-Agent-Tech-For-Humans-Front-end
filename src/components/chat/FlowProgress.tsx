@@ -2,7 +2,7 @@
 
 import type { OrchestratorState } from "@/types/api";
 
-interface FlowStep {
+export interface FlowStep {
   flow: string;
   step: string;
   index: number;
@@ -25,28 +25,41 @@ const FLOW_STEPS: Partial<Record<OrchestratorState, FlowStep>> = {
   exchange_to: { flow: "Câmbio", step: "Moeda de destino", index: 2, total: 2 },
 };
 
-export function FlowProgress({ state }: { state: OrchestratorState }) {
-  const step = FLOW_STEPS[state];
+export function getFlowStep(state: OrchestratorState): FlowStep | null {
+  return FLOW_STEPS[state] ?? null;
+}
+
+/** Texto curto da etapa atual, para o painel lateral. */
+export function describeStage(state: OrchestratorState): string {
+  const step = getFlowStep(state);
+  if (step) return `${step.flow} · ${step.step}`;
+  if (state === "authenticated") return "Menu de serviços";
+  if (state === "goodbye") return "Encerrado";
+  return "Início";
+}
+
+export function FlowProgress({ state, className }: { state: OrchestratorState; className?: string }) {
+  const step = getFlowStep(state);
   if (!step) return null;
 
   const percent = Math.round((step.index / step.total) * 100);
 
   return (
-    <div className="px-4 pt-3" aria-label={`${step.flow}: ${step.step}, etapa ${step.index} de ${step.total}`}>
+    <div className={className} aria-label={`${step.flow}: ${step.step}, etapa ${step.index} de ${step.total}`}>
       <div className="flex items-center justify-between text-xs">
         <span className="font-medium text-ink">{step.flow}</span>
-        <span className="text-ink-muted">
-          {step.step} · {step.index}/{step.total}
+        <span className="tabular-nums text-ink-muted">
+          {step.step} · {step.index} de {step.total}
         </span>
       </div>
       <div
-        className="mt-1.5 h-1 overflow-hidden rounded-full bg-line"
+        className="mt-1.5 h-1 overflow-hidden bg-line"
         role="progressbar"
         aria-valuemin={0}
         aria-valuemax={step.total}
         aria-valuenow={step.index}
       >
-        <div className="h-full rounded-full bg-brand transition-all duration-500" style={{ width: `${percent}%` }} />
+        <div className="h-full bg-navy transition-[width] duration-300" style={{ width: `${percent}%` }} />
       </div>
     </div>
   );

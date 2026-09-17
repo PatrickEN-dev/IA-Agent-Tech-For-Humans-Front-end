@@ -1,6 +1,5 @@
 "use client";
 
-import { CheckCircle2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ChatInput } from "./ChatInput";
 import { FlowProgress } from "./FlowProgress";
@@ -22,27 +21,27 @@ function getPlaceholder(state: OrchestratorState): string {
   switch (state) {
     case "welcome":
     case "collecting_cpf":
-      return "Digite seu CPF (só números ou com pontos)...";
+      return "Informe seu CPF (somente números ou com pontos)";
     case "collecting_birthdate":
-      return "Sua data de nascimento (DD/MM/AAAA)...";
+      return "Data de nascimento (DD/MM/AAAA)";
     case "credit_increase_flow":
-      return "Qual limite você quer? Ex: 10 mil...";
+      return "Valor do novo limite, ex.: 10 mil";
     case "interview_income":
-      return "Sua renda mensal. Ex: 5 mil, 5k, 5000...";
+      return "Renda mensal, ex.: 5 mil";
     case "interview_employment":
-      return "Seu tipo de trabalho...";
+      return "Tipo de trabalho";
     case "interview_expenses":
-      return "Total das suas despesas mensais...";
+      return "Total das despesas mensais";
     case "interview_dependents":
-      return "Quantos dependentes você tem?...";
+      return "Número de dependentes";
     case "interview_debts":
-      return "Você tem dívidas em aberto? (sim/não)...";
+      return "Possui dívidas em aberto? (sim ou não)";
     case "exchange_from":
-      return "Qual moeda? Ex: dólar, euro, USD...";
+      return "Moeda, ex.: dólar, euro, USD";
     case "exchange_to":
-      return "Converter para qual moeda? Ex: real, BRL...";
+      return "Converter para qual moeda? ex.: real, BRL";
     default:
-      return "Digite sua mensagem...";
+      return "Escreva sua mensagem";
   }
 }
 
@@ -60,19 +59,15 @@ function getInputMode(state: OrchestratorState): "text" | "numeric" | "decimal" 
   }
 }
 
-function GoodbyeCard({ onRestart }: { onRestart: () => void }) {
+function EndOfService({ onRestart }: { onRestart: () => void }) {
   return (
-    <div className="p-4 animate-fade-in">
-      <div className="rounded-2xl border border-line bg-surface-2 p-5 text-center">
-        <div className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-accent/15 text-accent">
-          <CheckCircle2 size={24} aria-hidden="true" />
+    <div className="px-4 py-4 md:px-6">
+      <div className="flex flex-col gap-3 rounded border border-line bg-surface-muted p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-sm font-semibold text-ink">Atendimento encerrado</p>
+          <p className="mt-0.5 text-sm text-ink-muted">Obrigado por falar com o Banco Ágil.</p>
         </div>
-        <h2 className="mt-3 font-semibold text-ink">Atendimento encerrado</h2>
-        <p className="mt-1 text-sm text-ink-muted">Obrigado por falar com o Banco Ágil.</p>
-        <Button onClick={onRestart} size="lg" className="mt-4 w-full">
-          <RefreshCw size={18} />
-          Iniciar novo atendimento
-        </Button>
+        <Button onClick={onRestart}>Iniciar novo atendimento</Button>
       </div>
     </div>
   );
@@ -91,14 +86,14 @@ export function ChatFooter({
   if (currentState === "goodbye") {
     return (
       <div className="border-t border-line bg-surface">
-        <GoodbyeCard onRestart={onRestart} />
+        <EndOfService onRestart={onRestart} />
       </div>
     );
   }
 
   return (
     <div className="border-t border-line bg-surface">
-      <FlowProgress state={currentState} />
+      <FlowProgress state={currentState} className="px-4 pt-3 md:px-6" />
       {!isLoading && (
         <QuickReplies
           state={currentState}

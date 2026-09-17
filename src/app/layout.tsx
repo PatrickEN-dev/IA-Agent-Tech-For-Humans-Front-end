@@ -1,19 +1,22 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+// Tipografia escolhida de propósito: Plex tem números tabulares e tom institucional.
+const plexSans = IBM_Plex_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-sans",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Banco Ágil - Assistente Virtual",
-  description: "Assistente bancário inteligente para consultas de crédito, câmbio e mais.",
+  description: "Atendimento digital do Banco Ágil: limite de crédito, câmbio e perfil financeiro.",
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#eef2f7" },
-    { media: "(prefers-color-scheme: dark)", color: "#090e1a" },
-  ],
+  themeColor: "#0f2a4a",
   width: "device-width",
   initialScale: 1,
 };
@@ -24,8 +27,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
-      <body className={inter.className}>{children}</body>
+    <html lang="pt-BR" className={plexSans.variable}>
+      <body className="font-sans">{children}</body>
     </html>
   );
 }

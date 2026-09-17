@@ -61,6 +61,7 @@ interface UseChatReturn {
   isReady: boolean;
   isWakingUp: boolean;
   initFailed: boolean;
+  sessionId: string | null;
   currentState: OrchestratorState;
   currentAgent: AgentType;
   isAuthenticated: boolean;
@@ -79,6 +80,7 @@ export function useChat(): UseChatReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [isWakingUp, setIsWakingUp] = useState(false);
   const [initFailed, setInitFailed] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [currentState, setCurrentState] = useState<OrchestratorState>("welcome");
   const [currentAgent, setCurrentAgent] = useState<AgentType>("triage");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -120,6 +122,7 @@ export function useChat(): UseChatReturn {
 
   const applyResponse = useCallback(
     (response: UnifiedChatResponse) => {
+      setSessionId(response.session_id);
       setCurrentState(response.state);
       setCurrentAgent(response.current_agent);
       setIsAuthenticated(response.authenticated);
@@ -195,6 +198,7 @@ export function useChat(): UseChatReturn {
   const resetChat = useCallback(() => {
     apiService.logout();
     setMessages([]);
+    setSessionId(null);
     setCurrentState("welcome");
     setCurrentAgent("triage");
     setIsAuthenticated(false);
@@ -218,6 +222,7 @@ export function useChat(): UseChatReturn {
     isReady: isInitialized,
     isWakingUp,
     initFailed,
+    sessionId,
     currentState,
     currentAgent,
     isAuthenticated,

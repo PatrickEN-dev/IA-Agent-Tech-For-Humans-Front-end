@@ -1,53 +1,54 @@
 import type { Config } from "tailwindcss";
 
-// Cores vêm dos tokens em globals.css (claro/escuro), por isso não há variantes `dark:` nos componentes.
+// Cores vêm dos tokens em globals.css.
 const token = (name: string) => `rgb(var(--${name}) / <alpha-value>)`;
 
 const config: Config = {
   content: ["./src/components/**/*.{ts,tsx}", "./src/app/**/*.{ts,tsx}"],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["var(--font-sans)", "IBM Plex Sans", "Segoe UI", "Helvetica Neue", "Arial", "sans-serif"],
+      },
       colors: {
         canvas: token("canvas"),
         surface: {
           DEFAULT: token("surface"),
-          2: token("surface-2"),
+          muted: token("surface-muted"),
         },
-        line: token("line"),
+        line: {
+          DEFAULT: token("line"),
+          strong: token("line-strong"),
+        },
         ink: {
           DEFAULT: token("ink"),
           muted: token("ink-muted"),
         },
-        brand: {
-          DEFAULT: token("brand"),
-          strong: token("brand-strong"),
-          soft: token("brand-soft"),
-          ink: token("brand-ink"),
+        navy: {
+          DEFAULT: token("navy"),
+          hover: token("navy-hover"),
+          tint: token("navy-tint"),
         },
         accent: token("accent"),
+        success: token("success"),
         danger: {
           DEFAULT: token("danger"),
-          soft: token("danger-soft"),
+          tint: token("danger-tint"),
         },
       },
-      boxShadow: {
-        card: "0 24px 60px -24px rgb(15 23 42 / 0.28), 0 2px 8px rgb(15 23 42 / 0.06)",
-        bubble: "0 1px 2px rgb(15 23 42 / 0.06)",
-        float: "0 8px 24px -8px rgb(15 23 42 / 0.35)",
+      borderRadius: {
+        DEFAULT: "6px",
+        md: "6px",
+        lg: "8px",
       },
       keyframes: {
-        "message-in": {
-          from: { opacity: "0", transform: "translateY(6px)" },
-          to: { opacity: "1", transform: "translateY(0)" },
-        },
         "fade-in": {
           from: { opacity: "0" },
           to: { opacity: "1" },
         },
       },
       animation: {
-        "message-in": "message-in 220ms ease-out both",
-        "fade-in": "fade-in 300ms ease-out both",
+        "fade-in": "fade-in 160ms ease-out both",
       },
     },
   },

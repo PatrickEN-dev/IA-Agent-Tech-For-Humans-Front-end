@@ -2,61 +2,41 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Tokens de cor (RGB sem vírgulas, para o Tailwind aplicar opacidade). */
+/*
+  Tokens de cor (RGB sem vírgulas, para o Tailwind aplicar opacidade).
+  Direção: portal bancário corporativo. Superfícies sólidas, bordas finas, um único
+  azul-marinho institucional, verde e vermelho apenas com significado funcional.
+*/
 :root {
-  --canvas: 238 242 247;
-  --canvas-glow-1: 219 234 254;
-  --canvas-glow-2: 224 242 254;
+  --canvas: 243 245 247;
   --surface: 255 255 255;
-  --surface-2: 241 245 249;
-  --line: 226 232 240;
-  --ink: 15 23 42;
-  --ink-muted: 100 116 139;
-  --brand: 37 99 235;
-  --brand-strong: 29 78 216;
-  --brand-soft: 219 234 254;
-  --brand-ink: 30 64 175;
-  --accent: 16 185 129;
-  --danger: 185 28 28;
-  --danger-soft: 254 226 226;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --canvas: 9 14 26;
-    --canvas-glow-1: 30 58 138;
-    --canvas-glow-2: 12 74 110;
-    --surface: 15 23 42;
-    --surface-2: 30 41 59;
-    --line: 51 65 85;
-    --ink: 241 245 249;
-    --ink-muted: 148 163 184;
-    --brand: 59 130 246;
-    --brand-strong: 37 99 235;
-    --brand-soft: 30 58 138;
-    --brand-ink: 191 219 254;
-    --accent: 52 211 153;
-    --danger: 252 165 165;
-    --danger-soft: 69 10 10;
-  }
+  --surface-muted: 247 248 250;
+  --line: 218 223 230;
+  --line-strong: 190 198 208;
+  --ink: 27 36 48;
+  --ink-muted: 91 103 115;
+  --navy: 15 42 74;
+  --navy-hover: 20 56 98;
+  --navy-tint: 233 239 246;
+  --accent: 184 134 46;
+  --success: 24 122 78;
+  --danger: 180 35 24;
+  --danger-tint: 253 236 234;
 }
 
 html {
-  color-scheme: light dark;
+  color-scheme: light;
 }
 
 body {
   color: rgb(var(--ink));
   background-color: rgb(var(--canvas));
-  background-image:
-    radial-gradient(900px 480px at 8% -10%, rgb(var(--canvas-glow-1) / 0.9), transparent 60%),
-    radial-gradient(700px 420px at 105% 110%, rgb(var(--canvas-glow-2) / 0.8), transparent 55%);
-  background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
 }
 
 ::-webkit-scrollbar-track {
@@ -64,12 +44,9 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgb(var(--line));
-  border-radius: 999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgb(var(--ink-muted) / 0.6);
+  background: rgb(var(--line-strong));
+  border: 3px solid rgb(var(--surface));
+  border-radius: 6px;
 }
 
 @layer utilities {
@@ -83,9 +60,8 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-bounce,
   .animate-pulse,
-  .animate-message-in,
+  .animate-spin,
   .animate-fade-in {
     animation: none;
   }

@@ -1,82 +1,55 @@
 "use client";
 
-import { ClipboardList, Coins, CreditCard, LogOut, ShieldCheck, UserCheck, type LucideIcon } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { BrandMark } from "@/components/ui/BrandMark";
+import { Wordmark } from "@/components/ui/Wordmark";
 import { cn } from "@/lib/utils";
-import type { AgentType, ConnectionStatus } from "@/types/api";
+import type { ConnectionStatus } from "@/types/api";
 
 interface ChatHeaderProps {
   connection: ConnectionStatus;
-  currentAgent: AgentType;
   isAuthenticated: boolean;
   userName: string | null;
   onLogout: () => void;
 }
 
-const AGENT_META: Record<AgentType, { label: string; icon: LucideIcon }> = {
-  triage: { label: "Identificação", icon: UserCheck },
-  credit: { label: "Crédito", icon: CreditCard },
-  interview: { label: "Perfil financeiro", icon: ClipboardList },
-  exchange: { label: "Câmbio", icon: Coins },
-};
-
 const CONNECTION_META: Record<ConnectionStatus, { label: string; dot: string }> = {
-  connecting: { label: "Conectando…", dot: "bg-amber-400 animate-pulse" },
-  online: { label: "Online", dot: "bg-accent" },
+  connecting: { label: "Conectando", dot: "bg-accent animate-pulse" },
+  online: { label: "Online", dot: "bg-success" },
   offline: { label: "Indisponível", dot: "bg-danger" },
 };
 
-export function ChatHeader({
-  connection,
-  currentAgent,
-  isAuthenticated,
-  userName,
-  onLogout,
-}: ChatHeaderProps) {
-  const agent = AGENT_META[currentAgent] ?? AGENT_META.triage;
-  const AgentIcon = agent.icon;
+/** Barra de aplicação institucional: marca, status do canal e sessão do cliente. */
+export function ChatHeader({ connection, isAuthenticated, userName, onLogout }: ChatHeaderProps) {
   const status = CONNECTION_META[connection];
 
   return (
-    <header className="flex items-center gap-3 border-b border-line bg-surface/90 px-4 py-3 backdrop-blur">
-      <BrandMark size={40} />
+    <header className="border-b-2 border-accent bg-navy text-white">
+      <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-4 px-4">
+        <Wordmark tone="light" />
+        <span className="hidden h-5 w-px bg-white/25 sm:block" aria-hidden="true" />
+        <span className="hidden text-sm text-white/80 sm:block">Assistente virtual</span>
 
-      <div className="min-w-0 flex-1">
-        <h1 className="truncate text-base font-semibold leading-tight text-ink">Banco Ágil</h1>
-        <p className="flex items-center gap-1.5 whitespace-nowrap text-xs text-ink-muted" role="status">
-          <span className={cn("h-2 w-2 shrink-0 rounded-full", status.dot)} aria-hidden="true" />
-          <span>
-            <span className="hidden sm:inline">Assistente virtual · </span>
+        <div className="ml-auto flex items-center gap-4 text-sm">
+          <span className="inline-flex items-center gap-2 text-white/85" role="status">
+            <span className={cn("h-2 w-2 rounded-full", status.dot)} aria-hidden="true" />
             {status.label}
           </span>
-        </p>
-      </div>
 
-      <div className="flex items-center gap-2">
-        {isAuthenticated && (
-          <span
-            className="hidden items-center gap-1.5 rounded-full border border-line bg-surface-2 px-2.5 py-1 text-xs font-medium text-ink-muted sm:inline-flex"
-            title="Etapa atual do atendimento"
-          >
-            <AgentIcon size={13} aria-hidden="true" />
-            {agent.label}
-          </span>
-        )}
+          {isAuthenticated && userName && (
+            <span className="hidden items-center gap-2 border-l border-white/25 pl-4 sm:inline-flex">
+              <span className="text-white/70">Cliente</span>
+              <span className="font-medium">{userName}</span>
+            </span>
+          )}
 
-        {isAuthenticated && (
-          <span className="inline-flex max-w-[9rem] items-center gap-1.5 rounded-full bg-brand-soft px-2.5 py-1 text-xs font-medium text-brand-ink">
-            <ShieldCheck size={13} className="shrink-0" aria-hidden="true" />
-            <span className="truncate">{userName ? `Olá, ${userName}` : "Autenticado"}</span>
-          </span>
-        )}
-
-        {isAuthenticated && (
-          <Button variant="ghost" size="sm" onClick={onLogout} aria-label="Encerrar e sair">
-            <LogOut size={16} />
-            <span className="hidden sm:inline">Sair</span>
-          </Button>
-        )}
+          {isAuthenticated && (
+            <Button variant="inverse" size="sm" onClick={onLogout} aria-label="Encerrar atendimento">
+              <LogOut size={14} aria-hidden="true" />
+              <span className="hidden sm:inline">Encerrar atendimento</span>
+            </Button>
+          )}
+        </div>
       </div>
     </header>
   );

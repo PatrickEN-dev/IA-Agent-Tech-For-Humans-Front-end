@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
-import { Lock, Send } from "lucide-react";
+import { Lock } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 
 type InputMode = "text" | "numeric" | "decimal";
 
@@ -43,11 +44,8 @@ export function ChatInput({ onSend, disabled, placeholder, inputMode = "text" }:
   };
 
   return (
-    <div className="px-4 pb-3 pt-2">
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="flex items-center gap-2 rounded-full border border-line bg-surface-2 py-1.5 pl-4 pr-1.5 transition-shadow focus-within:border-brand focus-within:ring-4 focus-within:ring-brand/15"
-      >
+    <div className="px-4 pb-3 pt-3 md:px-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="flex gap-2">
         <input
           {...field}
           ref={(element) => {
@@ -55,28 +53,26 @@ export function ChatInput({ onSend, disabled, placeholder, inputMode = "text" }:
             inputRef.current = element;
           }}
           type="text"
-          placeholder={placeholder || "Digite sua mensagem..."}
+          placeholder={placeholder || "Escreva sua mensagem"}
           disabled={disabled}
           inputMode={inputMode}
           maxLength={MAX_MESSAGE_LENGTH}
           autoComplete="off"
           autoFocus
           aria-label="Mensagem"
-          className="min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-ink-muted/80 disabled:cursor-not-allowed disabled:opacity-60"
+          className="h-10 min-w-0 flex-1 rounded border border-line-strong bg-surface px-3 text-sm text-ink placeholder:text-ink-muted/80 focus:border-navy focus:outline-none focus:ring-2 focus:ring-navy/20 disabled:cursor-not-allowed disabled:bg-surface-muted"
         />
-        <button
-          type="submit"
-          disabled={disabled}
-          className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand text-white shadow-bubble transition-colors hover:bg-brand-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 disabled:cursor-not-allowed disabled:opacity-50"
-          aria-label="Enviar"
-        >
-          <Send size={16} />
-        </button>
+        <Button type="submit" disabled={disabled}>
+          Enviar
+        </Button>
       </form>
-      <p className="mt-2 flex items-center justify-center gap-1 text-[11px] text-ink-muted">
-        <Lock size={11} aria-hidden="true" />
-        Conversa segura · nunca pedimos senha ou dados do cartão
-      </p>
+      <div className="mt-2 flex items-center justify-between text-xs text-ink-muted">
+        <span className="hidden sm:inline">Enter para enviar</span>
+        <span className="inline-flex items-center gap-1">
+          <Lock size={11} aria-hidden="true" />
+          Conexão segura
+        </span>
+      </div>
     </div>
   );
 }

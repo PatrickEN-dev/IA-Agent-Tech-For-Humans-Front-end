@@ -20,12 +20,19 @@ Produção: https://ia-agent-tech-for-humans-frontend.vercel.app/
 
 ## Interface
 
-- Cartão de chat centralizado no desktop e tela cheia no celular; tema claro/escuro automático
-  (`prefers-color-scheme`) via tokens de cor em `globals.css`, sem variantes `dark:` nos componentes.
-- Mensagens agrupadas por autor com um avatar e um horário por grupo; linhas "Rótulo: valor" do
-  back-end (limite, score, cotação) viram cartões de dados.
-- Barra de progresso das etapas (identificação, entrevista, câmbio), chips com ícones, estado de
-  conexão no cabeçalho, saudação com o nome do cliente e tela de encerramento.
+Direção visual de portal bancário corporativo (referências: Erica do Bank of America, Linear,
+Stripe): superfícies sólidas com bordas de 1px, raio de 6px, um único azul-marinho institucional,
+verde e vermelho apenas com significado funcional, sem gradientes, vidro ou animações decorativas.
+
+- Tipografia IBM Plex Sans (números tabulares) carregada por `next/font`.
+- Barra de aplicação com marca, status do canal, cliente identificado e "Encerrar atendimento".
+- Painel lateral **Atendimento** no desktop: status, cliente, etapa, protocolo (sessão), lista de
+  serviços clicável após a identificação e aviso de segurança.
+- Mensagens agrupadas por autor com remetente e horário; linhas "Rótulo: valor" do back-end
+  (limite, score, cotação) viram tabelas de dados.
+- Progresso das etapas (identificação, entrevista, câmbio), respostas sugeridas em botões
+  retangulares, estado "Conectando" e painel de encerramento.
+- Tokens de cor em `globals.css` (`--navy`, `--ink`, `--line`...), mapeados no `tailwind.config.ts`.
 
 ## Rodando localmente
 
@@ -58,8 +65,8 @@ npm run build   # build de produção (também valida os tipos)
 ```
 src/
 ├── app/                 # layout e página única
-├── components/chat/     # ChatContainer, ChatHeader, ChatMessages, ChatFooter, FlowProgress, QuickReplies, ChatInput
-├── components/ui/       # primitivos (Button, Avatar, BrandMark)
+├── components/chat/     # ChatContainer, ChatHeader, SessionPanel, ChatMessages, ChatFooter, FlowProgress, QuickReplies, ChatInput
+├── components/ui/       # primitivos (Button, Avatar, Wordmark)
 ├── lib/utils.ts         # cn, ids, formatação de hora e de erros da API
 ├── hooks/useChat.ts     # estado da conversa, init com retry, envio de mensagens
 ├── services/api.service.ts  # axios + sessão em sessionStorage

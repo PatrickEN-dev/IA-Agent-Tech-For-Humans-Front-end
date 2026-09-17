@@ -7,8 +7,6 @@ import { cn } from "@/lib/utils";
 interface ChatMessageProps {
   message: ChatMessageType;
   isUser: boolean;
-  /** Primeira bolha do grupo recebe o canto "colado" ao avatar. */
-  isFirst: boolean;
 }
 
 type Block =
@@ -91,31 +89,26 @@ function RichContent({ content }: { content: string }) {
   const blocks = parseBlocks(content);
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2.5">
       {blocks.map((block, i) => {
         if (block.type === "ul") {
           return (
-            <ul key={i} className="space-y-1">
+            <ul key={i} className="list-disc space-y-1 pl-5 marker:text-ink-muted">
               {block.items.map((item, j) => (
-                <li key={j} className="flex gap-2">
-                  <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-brand" aria-hidden="true" />
-                  <span>{renderInline(item)}</span>
-                </li>
+                <li key={j}>{renderInline(item)}</li>
               ))}
             </ul>
           );
         }
 
         if (block.type === "kv") {
+          // Tabela de dados simples: sem caixa dentro de caixa.
           return (
-            <dl
-              key={i}
-              className="min-w-[14rem] divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface sm:min-w-[17rem]"
-            >
+            <dl key={i} className="divide-y divide-line border-y border-line">
               {block.rows.map((row) => (
-                <div key={row.label} className="flex items-baseline justify-between gap-4 px-3 py-1.5">
-                  <dt className="shrink-0 text-xs text-ink-muted">{row.label}</dt>
-                  <dd className="text-right text-sm font-semibold tabular-nums text-ink">{row.value}</dd>
+                <div key={row.label} className="flex items-baseline justify-between gap-4 py-1.5">
+                  <dt className="shrink-0 text-ink-muted">{row.label}</dt>
+                  <dd className="text-right font-semibold tabular-nums text-ink">{row.value}</dd>
                 </div>
               ))}
             </dl>
@@ -132,23 +125,15 @@ function RichContent({ content }: { content: string }) {
   );
 }
 
-export function ChatMessage({ message, isUser, isFirst }: ChatMessageProps) {
+export function ChatMessage({ message, isUser }: ChatMessageProps) {
   return (
     <div
       className={cn(
-        "max-w-full animate-message-in rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-bubble",
-        isUser
-          ? "bg-gradient-to-br from-brand to-brand-strong text-white"
-          : "bg-surface-2 text-ink",
-        isUser && isFirst && "rounded-tr-md",
-        !isUser && isFirst && "rounded-tl-md"
+        "max-w-full rounded border px-4 py-3 text-sm leading-relaxed",
+        isUser ? "border-navy/15 bg-navy-tint text-ink" : "border-line bg-surface text-ink"
       )}
     >
-      {isUser ? (
-        <p className="whitespace-pre-wrap">{message.content}</p>
-      ) : (
-        <RichContent content={message.content} />
-      )}
+      {isUser ? <p className="whitespace-pre-wrap">{message.content}</p> : <RichContent content={message.content} />}
     </div>
   );
 }

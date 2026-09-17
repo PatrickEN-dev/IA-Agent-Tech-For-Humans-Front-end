@@ -1,21 +1,11 @@
 "use client";
 
-import {
-  Check,
-  ClipboardList,
-  Coins,
-  CreditCard,
-  TrendingUp,
-  X,
-  type LucideIcon,
-} from "lucide-react";
 import { CANCEL_ACTION, type OrchestratorState } from "@/types/api";
 import { cn } from "@/lib/utils";
 
 export interface QuickReply {
   label: string;
   message: string;
-  icon?: LucideIcon;
   variant?: "default" | "subtle";
 }
 
@@ -30,17 +20,17 @@ interface QuickRepliesProps {
 }
 
 const ACTION_REPLIES: Record<string, QuickReply> = {
-  consultar_limite: { label: "Ver meu limite", message: "quero ver meu limite", icon: CreditCard },
-  solicitar_aumento: { label: "Aumentar limite", message: "quero aumentar meu limite", icon: TrendingUp },
-  cotacao_cambio: { label: "Cotação de moedas", message: "cotação de moedas", icon: Coins },
-  atualizar_perfil: { label: "Atualizar perfil", message: "quero atualizar meu perfil", icon: ClipboardList },
+  consultar_limite: { label: "Consultar limite", message: "quero ver meu limite" },
+  solicitar_aumento: { label: "Solicitar aumento", message: "quero aumentar meu limite" },
+  cotacao_cambio: { label: "Cotação de moedas", message: "cotação de moedas" },
+  atualizar_perfil: { label: "Atualizar perfil", message: "quero atualizar meu perfil" },
 };
 
-const CANCEL_REPLY: QuickReply = { label: "Cancelar", message: "cancelar", icon: X, variant: "subtle" };
+const CANCEL_REPLY: QuickReply = { label: "Cancelar", message: "cancelar", variant: "subtle" };
 
 const YES_NO: QuickReply[] = [
-  { label: "Sim", message: "sim", icon: Check },
-  { label: "Não", message: "não", icon: X },
+  { label: "Sim", message: "sim" },
+  { label: "Não", message: "não" },
 ];
 
 const EMPLOYMENT: QuickReply[] = [
@@ -141,30 +131,26 @@ export function QuickReplies({
 
   return (
     <div
-      className="scrollbar-none flex gap-2 overflow-x-auto px-4 pb-1 pt-3 md:flex-wrap md:overflow-visible"
+      className="scrollbar-none flex gap-2 overflow-x-auto px-4 pt-3 md:flex-wrap md:overflow-visible md:px-6"
       role="group"
-      aria-label="Respostas rápidas"
+      aria-label="Respostas sugeridas"
     >
-      {replies.map((reply) => {
-        const Icon = reply.icon;
-        return (
-          <button
-            key={reply.label}
-            type="button"
-            disabled={disabled}
-            onClick={() => onSelect(reply.message)}
-            className={cn(
-              "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 disabled:cursor-not-allowed disabled:opacity-50",
-              reply.variant === "subtle"
-                ? "border-line bg-surface text-ink-muted hover:bg-surface-2 hover:text-ink"
-                : "border-brand/30 bg-brand-soft/60 text-brand-ink hover:border-brand hover:bg-brand-soft"
-            )}
-          >
-            {Icon && <Icon size={14} aria-hidden="true" />}
-            {reply.label}
-          </button>
-        );
-      })}
+      {replies.map((reply) => (
+        <button
+          key={reply.label}
+          type="button"
+          disabled={disabled}
+          onClick={() => onSelect(reply.message)}
+          className={cn(
+            "h-8 shrink-0 whitespace-nowrap rounded border px-3 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 disabled:cursor-not-allowed disabled:opacity-50",
+            reply.variant === "subtle"
+              ? "border-line bg-surface text-ink-muted hover:bg-surface-muted hover:text-ink"
+              : "border-line-strong bg-surface text-navy hover:border-navy hover:bg-navy-tint"
+          )}
+        >
+          {reply.label}
+        </button>
+      ))}
     </div>
   );
 }

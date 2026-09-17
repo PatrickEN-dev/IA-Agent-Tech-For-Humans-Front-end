@@ -5,6 +5,7 @@ import type { ConnectionStatus } from "@/types/api";
 import { ChatHeader } from "./ChatHeader";
 import { ChatMessages } from "./ChatMessages";
 import { ChatFooter } from "./ChatFooter";
+import { SessionPanel } from "./SessionPanel";
 
 export function ChatContainer() {
   const {
@@ -13,8 +14,8 @@ export function ChatContainer() {
     isReady,
     isWakingUp,
     initFailed,
+    sessionId,
     currentState,
-    currentAgent,
     isAuthenticated,
     userName,
     availableActions,
@@ -30,36 +31,56 @@ export function ChatContainer() {
   const connection: ConnectionStatus = initFailed ? "offline" : isReady ? "online" : "connecting";
 
   return (
-    <div className="relative flex h-[100dvh] w-full flex-col overflow-hidden bg-surface md:mx-auto md:h-[min(52rem,calc(100dvh-3rem))] md:max-w-3xl md:rounded-3xl md:border md:border-line md:shadow-card">
+    <div className="flex h-[100dvh] flex-col">
       <ChatHeader
         connection={connection}
-        currentAgent={currentAgent}
         isAuthenticated={isAuthenticated}
         userName={userName}
         onLogout={resetChat}
       />
-      <ChatMessages
-        messages={messages}
-        isLoading={isLoading}
-        isInitializing={isInitializing}
-        isWakingUp={isWakingUp}
-        initFailed={initFailed}
-        userInitial={userName ? userName.charAt(0) : null}
-        onRetry={retryInit}
-        messagesEndRef={messagesEndRef}
-      />
-      {!isInitializing && (
-        <ChatFooter
-          currentState={currentState}
-          isAuthenticated={isAuthenticated}
-          availableActions={availableActions}
-          hasPendingOffer={hasPendingOffer}
-          lastAssistantMessage={lastAssistantMessage}
-          isLoading={isLoading}
-          onSend={sendMessage}
-          onRestart={resetChat}
-        />
-      )}
+
+      <div className="mx-auto flex w-full max-w-6xl flex-1 gap-4 overflow-hidden md:p-4">
+        <section
+          className="flex min-w-0 flex-1 flex-col overflow-hidden bg-surface md:rounded md:border md:border-line"
+          aria-label="Conversa com o assistente"
+        >
+          <ChatMessages
+            messages={messages}
+            isLoading={isLoading}
+            isInitializing={isInitializing}
+            isWakingUp={isWakingUp}
+            initFailed={initFailed}
+            userName={userName}
+            onRetry={retryInit}
+            messagesEndRef={messagesEndRef}
+          />
+          {!isInitializing && (
+            <ChatFooter
+              currentState={currentState}
+              isAuthenticated={isAuthenticated}
+              availableActions={availableActions}
+              hasPendingOffer={hasPendingOffer}
+              lastAssistantMessage={lastAssistantMessage}
+              isLoading={isLoading}
+              onSend={sendMessage}
+              onRestart={resetChat}
+            />
+          )}
+        </section>
+
+        <div className="hidden w-[300px] shrink-0 md:block">
+          <SessionPanel
+            connection={connection}
+            currentState={currentState}
+            isAuthenticated={isAuthenticated}
+            userName={userName}
+            sessionId={sessionId}
+            availableActions={availableActions}
+            disabled={isLoading}
+            onSelect={sendMessage}
+          />
+        </div>
+      </div>
     </div>
   );
 }
