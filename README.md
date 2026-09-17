@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Banco Ágil - Front-end do Assistente Virtual
 
-## Getting Started
+Interface de chat (Next.js 14 + Tailwind) para o agente bancário do
+[back-end](https://github.com/PatrickEN-dev/IA-Agent-Tech-For-Humans-Back-end).
 
-First, run the development server:
+Produção: https://ia-agent-tech-for-humans-frontend.vercel.app/
+
+## Como funciona
+
+- Toda a conversa passa pelos endpoints `POST /api/unified/init` e `POST /api/unified/chat` do back-end.
+- O Next.js faz proxy de `/api/*` para `BACKEND_URL` (ver `next.config.mjs`), evitando CORS.
+- O back-end devolve `state`, `available_actions` e `redirect_suggestion`; o front usa isso para:
+  - mostrar **respostas rápidas** clicáveis (menu após login, sim/não em ofertas, moedas, tipo de emprego);
+  - trocar o placeholder e o teclado (`inputMode`) conforme a etapa (CPF, valores, data);
+  - exibir o botão "Iniciar novo atendimento" ao encerrar.
+- O primeiro acesso tolera o cold start do back-end no Render: timeout de 60 s, até 3 tentativas
+  e um aviso "o assistente está iniciando".
+
+## Rodando localmente
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # BACKEND_URL=http://localhost:8000
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+O back-end precisa estar rodando em `BACKEND_URL` (`python app.py` no repositório do back-end).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Variáveis de ambiente
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variável | Padrão | Descrição |
+|----------|--------|-----------|
+| `BACKEND_URL` | `http://localhost:8000` | URL do back-end (usada pelo proxy do Next) |
+| `NEXT_PUBLIC_API_URL` | `/api` | Base das chamadas no browser (mantém o proxy) |
+| `NEXT_PUBLIC_API_TIMEOUT` | `30000` | Timeout das mensagens em ms (o init usa no mínimo 60 s) |
 
-## Learn More
+## Scripts
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run dev     # desenvolvimento
+npm run lint    # eslint
+npm run build   # build de produção (também valida os tipos)
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Estrutura
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+├── app/                 # layout e página única
+├── components/chat/     # ChatContainer, ChatMessages, ChatFooter, QuickReplies, ChatInput...
+├── components/ui/       # primitivos (Button, Input, Avatar...)
+├── hooks/useChat.ts     # estado da conversa, init com retry, envio de mensagens
+├── services/api.service.ts  # axios + sessão em sessionStorage
+└── types/               # contratos da API (estados iguais aos do back-end)
+```

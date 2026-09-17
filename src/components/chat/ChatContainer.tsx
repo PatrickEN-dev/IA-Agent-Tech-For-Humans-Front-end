@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import { useChat } from "@/hooks/useChat";
 import { ChatHeader } from "./ChatHeader";
 import { ChatMessages } from "./ChatMessages";
@@ -10,26 +10,19 @@ export function ChatContainer() {
   const {
     messages,
     isLoading,
+    isWakingUp,
+    initFailed,
     currentState,
     currentAgent,
     isAuthenticated,
+    availableActions,
+    hasPendingOffer,
+    lastAssistantMessage,
     messagesEndRef,
     sendMessage,
     resetChat,
+    retryInit,
   } = useChat();
-
-  const [shouldReinit, setShouldReinit] = useState(false);
-
-  useEffect(() => {
-    if (shouldReinit && currentState === "WELCOME") {
-      setShouldReinit(false);
-    }
-  }, [shouldReinit, currentState]);
-
-  const handleLogout = useCallback(() => {
-    resetChat();
-    setShouldReinit(true);
-  }, [resetChat]);
 
   const handleSendMessage = useCallback(
     async (message: string) => {
@@ -40,20 +33,31 @@ export function ChatContainer() {
   );
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col h-[100dvh] bg-gray-50">
       <ChatHeader
         showLogout={isAuthenticated}
-        onLogout={handleLogout}
+        onLogout={resetChat}
         currentAgent={currentAgent}
         currentState={currentState}
         isAuthenticated={isAuthenticated}
       />
-      <ChatMessages messages={messages} isLoading={isLoading} messagesEndRef={messagesEndRef} />
+      <ChatMessages
+        messages={messages}
+        isLoading={isLoading}
+        isWakingUp={isWakingUp}
+        initFailed={initFailed}
+        onRetry={retryInit}
+        messagesEndRef={messagesEndRef}
+      />
       <ChatFooter
         currentState={currentState}
+        isAuthenticated={isAuthenticated}
+        availableActions={availableActions}
+        hasPendingOffer={hasPendingOffer}
+        lastAssistantMessage={lastAssistantMessage}
         isLoading={isLoading}
         onSend={handleSendMessage}
-        onRestart={handleLogout}
+        onRestart={resetChat}
       />
     </div>
   );

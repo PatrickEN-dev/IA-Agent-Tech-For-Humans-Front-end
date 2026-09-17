@@ -28,12 +28,21 @@ function formatContent(content: string): React.ReactNode {
       );
     }
 
+    if (line.startsWith("- ")) {
+      return (
+        <p key={i} className="pl-3 relative before:content-['•'] before:absolute before:left-0">
+          {line.slice(2)}
+        </p>
+      );
+    }
+
     return <p key={i}>{line || "\u00A0"}</p>;
   });
 }
 
 export function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === "user";
+  const isError = message.variant === "error";
 
   return (
     <div className={cn("flex gap-3", isUser ? "flex-row-reverse" : "flex-row")}>
@@ -41,15 +50,20 @@ export function ChatMessage({ message }: ChatMessageProps) {
       <div
         className={cn(
           "max-w-[75%] rounded-2xl px-4 py-3",
-          isUser
-            ? "bg-blue-600 text-white rounded-br-md"
-            : "bg-white border border-gray-200 rounded-bl-md shadow-sm"
+          isUser && "bg-blue-600 text-white rounded-br-md",
+          !isUser && !isError && "bg-white border border-gray-200 rounded-bl-md shadow-sm",
+          !isUser && isError && "bg-red-50 border border-red-200 text-red-800 rounded-bl-md"
         )}
       >
         <div className="whitespace-pre-wrap text-sm leading-relaxed">
           {formatContent(message.content)}
         </div>
-        <div className={cn("text-xs mt-2", isUser ? "text-blue-200" : "text-gray-400")}>
+        <div
+          className={cn(
+            "text-xs mt-2",
+            isUser ? "text-blue-200" : isError ? "text-red-400" : "text-gray-400"
+          )}
+        >
           {message.timestamp.toLocaleTimeString("pt-BR", {
             hour: "2-digit",
             minute: "2-digit",

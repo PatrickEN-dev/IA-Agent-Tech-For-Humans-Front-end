@@ -22,10 +22,10 @@ export interface UnifiedChatResponse {
   message: string;
   state: OrchestratorState;
   authenticated: boolean;
-  token?: string;
+  token?: string | null;
   current_agent: AgentType;
   available_actions: string[];
-  redirect_suggestion?: RedirectAction;
+  redirect_suggestion?: RedirectAction | null;
 }
 
 export interface ApiError {
@@ -33,23 +33,24 @@ export interface ApiError {
   remaining_attempts?: number;
 }
 
+// Valores exatamente como o backend devolve em `state` (src/agents/orchestrator.py)
 export type OrchestratorState =
-  | "WELCOME"
-  | "COLLECTING_CPF"
-  | "COLLECTING_BIRTHDATE"
-  | "AUTHENTICATED"
-  | "CREDIT_FLOW"
-  | "CREDIT_INCREASE_FLOW"
-  | "INTERVIEW_FLOW"
-  | "INTERVIEW_INCOME"
-  | "INTERVIEW_EMPLOYMENT"
-  | "INTERVIEW_EXPENSES"
-  | "INTERVIEW_DEPENDENTS"
-  | "INTERVIEW_DEBTS"
-  | "EXCHANGE_FLOW"
-  | "EXCHANGE_FROM"
-  | "EXCHANGE_TO"
-  | "GOODBYE";
+  | "welcome"
+  | "collecting_cpf"
+  | "collecting_birthdate"
+  | "authenticated"
+  | "credit_flow"
+  | "credit_increase_flow"
+  | "interview_flow"
+  | "interview_income"
+  | "interview_employment"
+  | "interview_expenses"
+  | "interview_dependents"
+  | "interview_debts"
+  | "exchange_flow"
+  | "exchange_from"
+  | "exchange_to"
+  | "goodbye";
 
 export type AgentType = "triage" | "credit" | "interview" | "exchange";
 
@@ -58,6 +59,11 @@ export type IntentType =
   | "request_increase"
   | "exchange_rate"
   | "interview"
+  | "greeting"
+  | "goodbye"
+  | "confirm"
+  | "reject"
+  | "off_topic"
   | "other";
 
 export interface HealthResponse {

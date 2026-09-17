@@ -3,6 +3,8 @@ import type { UnifiedChatResponse, ApiError, HealthResponse } from "@/types/api"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 const API_TIMEOUT = Number(process.env.NEXT_PUBLIC_API_TIMEOUT) || 30000;
+// O backend no plano free do Render dorme apos 15 min; a primeira chamada pode levar ~30 s.
+const INIT_TIMEOUT = Math.max(API_TIMEOUT, 60000);
 const TOKEN_KEY = "auth_token";
 const SESSION_KEY = "chat_session_id";
 
@@ -94,7 +96,12 @@ class ApiService {
   }
 
   async initUnifiedChat(): Promise<UnifiedChatResponse> {
-    const response = await this.client.post<UnifiedChatResponse>("/unified/init");
+    // Sessao nova: descarta token/sessao anteriores para nao enviar credencial velha.
+    this.logout();
+
+    const response = await this.client.post<UnifiedChatResponse>("/unified/init", undefined, {
+      timeout: INIT_TIMEOUT,
+    });
 
     this.setSessionId(response.data.session_id);
 

@@ -32,10 +32,15 @@ export function ChatHeader({
     <header className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-4 shadow-lg">
       <div className="max-w-2xl mx-auto flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold">Banco Agil</h1>
-          <p className="text-sm text-blue-100">
-            Agente: {getAgentLabel(currentAgent)}
-            {isAuthenticated && " | Autenticado"}
+          <h1 className="text-xl font-bold">Banco Ágil</h1>
+          <p className="text-sm text-blue-100 flex items-center gap-2">
+            <span>Agente: {getAgentLabel(currentAgent)}</span>
+            {isAuthenticated && (
+              <span className="inline-flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-green-300" aria-hidden="true" />
+                Autenticado
+              </span>
+            )}
           </p>
         </div>
         <div className="flex items-center gap-2">
