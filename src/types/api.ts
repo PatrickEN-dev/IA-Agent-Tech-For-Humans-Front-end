@@ -1,10 +1,3 @@
-export type MessageRole = "user" | "assistant";
-
-export interface ChatMessage {
-  role: MessageRole;
-  content: string;
-}
-
 export interface UnifiedChatRequest {
   session_id?: string;
   message: string;
@@ -23,13 +16,21 @@ export interface UnifiedChatResponse {
   state: OrchestratorState;
   authenticated: boolean;
   token?: string | null;
+  user_name?: string | null;
   current_agent: AgentType;
   available_actions: string[];
   redirect_suggestion?: RedirectAction | null;
 }
 
+// FastAPI devolve `detail` como string nos erros de negocio, como objeto na autenticacao
+// direta e como lista nos erros de validacao (422).
+export type ApiErrorDetail =
+  | string
+  | { message?: string; remaining_attempts?: number }
+  | Array<{ msg?: string; loc?: unknown[] }>;
+
 export interface ApiError {
-  detail: string;
+  detail?: ApiErrorDetail;
   remaining_attempts?: number;
 }
 
@@ -54,18 +55,7 @@ export type OrchestratorState =
 
 export type AgentType = "triage" | "credit" | "interview" | "exchange";
 
-export type IntentType =
-  | "credit_limit"
-  | "request_increase"
-  | "exchange_rate"
-  | "interview"
-  | "greeting"
-  | "goodbye"
-  | "confirm"
-  | "reject"
-  | "off_topic"
-  | "other";
+// Acao listada em `available_actions` enquanto um fluxo de coleta esta aberto
+export const CANCEL_ACTION = "cancelar";
 
-export interface HealthResponse {
-  status: "healthy" | "unhealthy";
-}
+export type ConnectionStatus = "connecting" | "online" | "offline";

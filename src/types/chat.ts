@@ -9,5 +9,3 @@ export interface ChatMessage {
   timestamp: Date;
   variant?: MessageVariant;
 }
-
-export type ApiStatus = "checking" | "online" | "offline";

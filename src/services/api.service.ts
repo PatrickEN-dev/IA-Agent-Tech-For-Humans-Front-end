@@ -1,12 +1,31 @@
 import axios, { AxiosInstance, AxiosError } from "axios";
-import type { UnifiedChatResponse, ApiError, HealthResponse } from "@/types/api";
+import type { UnifiedChatResponse, ApiError } from "@/types/api";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 const API_TIMEOUT = Number(process.env.NEXT_PUBLIC_API_TIMEOUT) || 30000;
-// O backend no plano free do Render dorme apos 15 min; a primeira chamada pode levar ~30 s.
+// O backend no plano free do Render dorme apos 15 min; a primeira chamada pode levar ~1 min.
 const INIT_TIMEOUT = Math.max(API_TIMEOUT, 60000);
 const TOKEN_KEY = "auth_token";
 const SESSION_KEY = "chat_session_id";
+
+function storageGet(key: string): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function storageSet(key: string, value: string | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (value === null) sessionStorage.removeItem(key);
+    else sessionStorage.setItem(key, value);
+  } catch {
+    // Navegacao privada ou storage bloqueado: a conversa segue so em memoria.
+  }
+}
 
 class ApiService {
   private client: AxiosInstance;
@@ -36,62 +55,25 @@ class ApiService {
       (response) => response,
       (error: AxiosError<ApiError>) => {
         if (error.response?.status === 401) {
-          this.clearToken();
-          this.clearSession();
+          this.logout();
         }
         return Promise.reject(error);
       }
     );
   }
 
-  setToken(token: string): void {
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem(TOKEN_KEY, token);
-    }
-  }
-
   getToken(): string | null {
-    if (typeof window !== "undefined") {
-      return sessionStorage.getItem(TOKEN_KEY);
-    }
-    return null;
-  }
-
-  clearToken(): void {
-    if (typeof window !== "undefined") {
-      sessionStorage.removeItem(TOKEN_KEY);
-    }
-  }
-
-  setSessionId(sessionId: string): void {
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem(SESSION_KEY, sessionId);
-    }
+    return storageGet(TOKEN_KEY);
   }
 
   getSessionId(): string | null {
-    if (typeof window !== "undefined") {
-      return sessionStorage.getItem(SESSION_KEY);
-    }
-    return null;
+    return storageGet(SESSION_KEY);
   }
 
-  clearSession(): void {
-    if (typeof window !== "undefined") {
-      sessionStorage.removeItem(SESSION_KEY);
-    }
-  }
-
-  isAuthenticated(): boolean {
-    return !!this.getToken();
-  }
-
-  async healthCheck(): Promise<HealthResponse | null> {
-    try {
-      const response = await this.client.get<HealthResponse>("/health");
-      return response.data;
-    } catch {
-      return null;
+  private remember(response: UnifiedChatResponse): void {
+    storageSet(SESSION_KEY, response.session_id);
+    if (response.token) {
+      storageSet(TOKEN_KEY, response.token);
     }
   }
 
@@ -103,35 +85,23 @@ class ApiService {
       timeout: INIT_TIMEOUT,
     });
 
-    this.setSessionId(response.data.session_id);
-
-    if (response.data.token) {
-      this.setToken(response.data.token);
-    }
-
+    this.remember(response.data);
     return response.data;
   }
 
   async sendUnifiedMessage(message: string): Promise<UnifiedChatResponse> {
-    const sessionId = this.getSessionId();
-
     const response = await this.client.post<UnifiedChatResponse>("/unified/chat", {
-      session_id: sessionId,
+      session_id: this.getSessionId(),
       message,
     });
 
-    this.setSessionId(response.data.session_id);
-
-    if (response.data.token) {
-      this.setToken(response.data.token);
-    }
-
+    this.remember(response.data);
     return response.data;
   }
 
   logout(): void {
-    this.clearToken();
-    this.clearSession();
+    storageSet(TOKEN_KEY, null);
+    storageSet(SESSION_KEY, null);
   }
 }
 

@@ -1,8 +1,9 @@
 "use client";
 
-import { RefreshCw } from "lucide-react";
+import { CheckCircle2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ChatInput } from "./ChatInput";
+import { FlowProgress } from "./FlowProgress";
 import { QuickReplies } from "./QuickReplies";
 import type { OrchestratorState } from "@/types/api";
 
@@ -59,6 +60,24 @@ function getInputMode(state: OrchestratorState): "text" | "numeric" | "decimal" 
   }
 }
 
+function GoodbyeCard({ onRestart }: { onRestart: () => void }) {
+  return (
+    <div className="p-4 animate-fade-in">
+      <div className="rounded-2xl border border-line bg-surface-2 p-5 text-center">
+        <div className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-accent/15 text-accent">
+          <CheckCircle2 size={24} aria-hidden="true" />
+        </div>
+        <h2 className="mt-3 font-semibold text-ink">Atendimento encerrado</h2>
+        <p className="mt-1 text-sm text-ink-muted">Obrigado por falar com o Banco Ágil.</p>
+        <Button onClick={onRestart} size="lg" className="mt-4 w-full">
+          <RefreshCw size={18} />
+          Iniciar novo atendimento
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export function ChatFooter({
   currentState,
   isAuthenticated,
@@ -71,17 +90,15 @@ export function ChatFooter({
 }: ChatFooterProps) {
   if (currentState === "goodbye") {
     return (
-      <div className="max-w-2xl mx-auto w-full p-4">
-        <Button onClick={onRestart} size="lg" className="w-full">
-          <RefreshCw size={18} />
-          Iniciar novo atendimento
-        </Button>
+      <div className="border-t border-line bg-surface">
+        <GoodbyeCard onRestart={onRestart} />
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto w-full">
+    <div className="border-t border-line bg-surface">
+      <FlowProgress state={currentState} />
       {!isLoading && (
         <QuickReplies
           state={currentState}

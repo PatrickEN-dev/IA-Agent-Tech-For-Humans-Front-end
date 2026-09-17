@@ -1,45 +1,34 @@
 "use client";
 
-import { type HTMLAttributes, forwardRef } from "react";
-import { User, Bot } from "lucide-react";
+import { User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { BrandMark } from "./BrandMark";
 
-export interface AvatarProps extends HTMLAttributes<HTMLDivElement> {
+export interface AvatarProps {
   variant: "user" | "assistant";
-  size?: "sm" | "md" | "lg";
+  /** Inicial do cliente autenticado; sem ela mostra o ícone genérico. */
+  initial?: string | null;
+  className?: string;
 }
 
-const sizeClasses = {
-  sm: "w-6 h-6",
-  md: "w-8 h-8",
-  lg: "w-10 h-10",
-};
-
-const iconSizes = {
-  sm: 14,
-  md: 18,
-  lg: 22,
-};
-
-export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
-  ({ className, variant, size = "md", ...props }, ref) => {
-    const Icon = variant === "user" ? User : Bot;
-
-    return (
-      <div
-        ref={ref}
-        className={cn(
-          "flex-shrink-0 rounded-full flex items-center justify-center",
-          variant === "user" ? "bg-blue-600" : "bg-gray-600",
-          sizeClasses[size],
-          className
-        )}
-        {...props}
-      >
-        <Icon size={iconSizes[size]} className="text-white" />
-      </div>
-    );
+export function Avatar({ variant, initial, className }: AvatarProps) {
+  if (variant === "assistant") {
+    return <BrandMark size={32} className={className} />;
   }
-);
 
-Avatar.displayName = "Avatar";
+  return (
+    <div
+      className={cn(
+        "grid h-8 w-8 shrink-0 place-items-center rounded-full border border-line bg-surface-2 text-ink-muted",
+        className
+      )}
+      aria-hidden="true"
+    >
+      {initial ? (
+        <span className="text-sm font-semibold text-brand-ink">{initial.toUpperCase()}</span>
+      ) : (
+        <User size={16} />
+      )}
+    </div>
+  );
+}

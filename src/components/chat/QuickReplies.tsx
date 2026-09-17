@@ -1,10 +1,22 @@
 "use client";
 
-import type { OrchestratorState } from "@/types/api";
+import {
+  Check,
+  ClipboardList,
+  Coins,
+  CreditCard,
+  TrendingUp,
+  X,
+  type LucideIcon,
+} from "lucide-react";
+import { CANCEL_ACTION, type OrchestratorState } from "@/types/api";
+import { cn } from "@/lib/utils";
 
 export interface QuickReply {
   label: string;
   message: string;
+  icon?: LucideIcon;
+  variant?: "default" | "subtle";
 }
 
 interface QuickRepliesProps {
@@ -18,15 +30,17 @@ interface QuickRepliesProps {
 }
 
 const ACTION_REPLIES: Record<string, QuickReply> = {
-  consultar_limite: { label: "Ver meu limite", message: "quero ver meu limite" },
-  solicitar_aumento: { label: "Aumentar limite", message: "quero aumentar meu limite" },
-  cotacao_cambio: { label: "Cotação de moedas", message: "cotação de moedas" },
-  atualizar_perfil: { label: "Atualizar perfil", message: "quero atualizar meu perfil" },
+  consultar_limite: { label: "Ver meu limite", message: "quero ver meu limite", icon: CreditCard },
+  solicitar_aumento: { label: "Aumentar limite", message: "quero aumentar meu limite", icon: TrendingUp },
+  cotacao_cambio: { label: "Cotação de moedas", message: "cotação de moedas", icon: Coins },
+  atualizar_perfil: { label: "Atualizar perfil", message: "quero atualizar meu perfil", icon: ClipboardList },
 };
 
+const CANCEL_REPLY: QuickReply = { label: "Cancelar", message: "cancelar", icon: X, variant: "subtle" };
+
 const YES_NO: QuickReply[] = [
-  { label: "Sim", message: "sim" },
-  { label: "Não", message: "não" },
+  { label: "Sim", message: "sim", icon: Check },
+  { label: "Não", message: "não", icon: X },
 ];
 
 const EMPLOYMENT: QuickReply[] = [
@@ -63,13 +77,7 @@ const LIMIT_AMOUNTS: QuickReply[] = [
 // Ultima mensagem do assistente e uma pergunta de sim/nao ("Deseja solicitar aumento?")
 const YES_NO_QUESTION = /(\b(deseja|gostaria)\b[^?]*\?\s*$)|(responda sim ou n[aã]o)/i;
 
-export function getQuickReplies(
-  state: OrchestratorState,
-  isAuthenticated: boolean,
-  availableActions: string[],
-  hasPendingOffer: boolean,
-  lastAssistantMessage: string | null
-): QuickReply[] {
+function flowReplies(state: OrchestratorState): QuickReply[] {
   switch (state) {
     case "interview_employment":
       return EMPLOYMENT;
@@ -83,18 +91,33 @@ export function getQuickReplies(
       return CURRENCIES_WITH_BRL;
     case "credit_increase_flow":
       return LIMIT_AMOUNTS;
-    case "authenticated": {
-      if (!isAuthenticated) return [];
-      const menu = availableActions
-        .map((action) => ACTION_REPLIES[action])
-        .filter((reply): reply is QuickReply => Boolean(reply));
-      const asksYesNo =
-        hasPendingOffer || (lastAssistantMessage ? YES_NO_QUESTION.test(lastAssistantMessage.trim()) : false);
-      return asksYesNo ? [...YES_NO, ...menu] : menu;
-    }
     default:
       return [];
   }
+}
+
+export function getQuickReplies(
+  state: OrchestratorState,
+  isAuthenticated: boolean,
+  availableActions: string[],
+  hasPendingOffer: boolean,
+  lastAssistantMessage: string | null
+): QuickReply[] {
+  if (state === "authenticated") {
+    if (!isAuthenticated) return [];
+    const menu = availableActions
+      .map((action) => ACTION_REPLIES[action])
+      .filter((reply): reply is QuickReply => Boolean(reply));
+    const asksYesNo =
+      hasPendingOffer ||
+      (lastAssistantMessage ? YES_NO_QUESTION.test(lastAssistantMessage.trim()) : false);
+    return asksYesNo ? [...YES_NO, ...menu] : menu;
+  }
+
+  const replies = flowReplies(state);
+  // O back-end lista "cancelar" enquanto um fluxo de coleta esta aberto
+  const canCancel = isAuthenticated && availableActions.includes(CANCEL_ACTION);
+  return canCancel ? [...replies, CANCEL_REPLY] : replies;
 }
 
 export function QuickReplies({
@@ -118,21 +141,30 @@ export function QuickReplies({
 
   return (
     <div
-      className="flex gap-2 overflow-x-auto px-4 pb-2 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="scrollbar-none flex gap-2 overflow-x-auto px-4 pb-1 pt-3 md:flex-wrap md:overflow-visible"
       role="group"
       aria-label="Respostas rápidas"
     >
-      {replies.map((reply) => (
-        <button
-          key={reply.label}
-          type="button"
-          disabled={disabled}
-          onClick={() => onSelect(reply.message)}
-          className="whitespace-nowrap rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm text-blue-700 transition-colors hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {reply.label}
-        </button>
-      ))}
+      {replies.map((reply) => {
+        const Icon = reply.icon;
+        return (
+          <button
+            key={reply.label}
+            type="button"
+            disabled={disabled}
+            onClick={() => onSelect(reply.message)}
+            className={cn(
+              "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 disabled:cursor-not-allowed disabled:opacity-50",
+              reply.variant === "subtle"
+                ? "border-line bg-surface text-ink-muted hover:bg-surface-2 hover:text-ink"
+                : "border-brand/30 bg-brand-soft/60 text-brand-ink hover:border-brand hover:bg-brand-soft"
+            )}
+          >
+            {Icon && <Icon size={14} aria-hidden="true" />}
+            {reply.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
