@@ -10,6 +10,10 @@ import { SessionPanel } from "./SessionPanel";
 export function ChatContainer() {
   const {
     messages,
+    personas,
+    demoNotice,
+    signupEnabled,
+    loginAsPersona,
     isLoading,
     isReady,
     isWakingUp,
@@ -62,8 +66,12 @@ export function ChatContainer() {
               hasPendingOffer={hasPendingOffer}
               lastAssistantMessage={lastAssistantMessage}
               isLoading={isLoading}
+              personas={personas}
+              signupEnabled={signupEnabled}
+              demoNotice={demoNotice}
               onSend={sendMessage}
               onRestart={resetChat}
+              onSelectPersona={loginAsPersona}
             />
           )}
         </section>
@@ -76,8 +84,11 @@ export function ChatContainer() {
             userName={userName}
             sessionId={sessionId}
             availableActions={availableActions}
+            personas={personas}
+            signupEnabled={signupEnabled}
             disabled={isLoading}
             onSelect={sendMessage}
+            onSelectPersona={loginAsPersona}
           />
         </div>
       </div>

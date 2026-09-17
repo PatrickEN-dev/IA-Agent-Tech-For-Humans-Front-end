@@ -2,8 +2,9 @@
 
 import { Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { ConnectionStatus, OrchestratorState } from "@/types/api";
+import type { ConnectionStatus, DemoPersona, OrchestratorState } from "@/types/api";
 import { describeStage } from "./FlowProgress";
+import { PersonaPicker } from "./PersonaPicker";
 
 interface SessionPanelProps {
   connection: ConnectionStatus;
@@ -12,8 +13,11 @@ interface SessionPanelProps {
   userName: string | null;
   sessionId: string | null;
   availableActions: string[];
+  personas: DemoPersona[];
+  signupEnabled: boolean;
   disabled: boolean;
   onSelect: (message: string) => void;
+  onSelectPersona: (personaId: string) => void;
 }
 
 const SERVICES: { action: string; label: string; message: string }[] = [
@@ -46,8 +50,11 @@ export function SessionPanel({
   userName,
   sessionId,
   availableActions,
+  personas,
+  signupEnabled,
   disabled,
   onSelect,
+  onSelectPersona,
 }: SessionPanelProps) {
   const protocol = sessionId ? sessionId.replace(/-/g, "").slice(0, 8).toUpperCase() : "—";
   const servicesEnabled = isAuthenticated && !disabled && currentState !== "goodbye";
@@ -76,6 +83,18 @@ export function SessionPanel({
           </Row>
         </dl>
       </section>
+
+      {!isAuthenticated && (personas.length > 0 || signupEnabled) && (
+        <section className="border-b border-line px-4 py-3">
+          <PersonaPicker
+            personas={personas}
+            signupEnabled={signupEnabled}
+            disabled={disabled}
+            onSelect={onSelectPersona}
+            onCreateAccount={() => onSelect("criar conta")}
+          />
+        </section>
+      )}
 
       <section className="border-b border-line px-4 py-3">
         <h2 className="text-sm font-semibold text-ink">Serviços</h2>

@@ -1,12 +1,14 @@
 "use client";
 
-import { CANCEL_ACTION, type OrchestratorState } from "@/types/api";
+import { CANCEL_ACTION, type DemoPersona, type OrchestratorState } from "@/types/api";
 import { cn } from "@/lib/utils";
 
 export interface QuickReply {
   label: string;
   message: string;
   variant?: "default" | "subtle";
+  /** Quando presente, o chip faz login por persona em vez de enviar uma mensagem. */
+  personaId?: string;
 }
 
 interface QuickRepliesProps {
@@ -15,8 +17,11 @@ interface QuickRepliesProps {
   availableActions: string[];
   hasPendingOffer: boolean;
   lastAssistantMessage: string | null;
+  personas?: DemoPersona[];
+  signupEnabled?: boolean;
   disabled?: boolean;
   onSelect: (message: string) => void;
+  onSelectPersona?: (personaId: string) => void;
 }
 
 const ACTION_REPLIES: Record<string, QuickReply> = {
@@ -64,6 +69,18 @@ const LIMIT_AMOUNTS: QuickReply[] = [
   { label: "R$ 20 mil", message: "20 mil" },
 ];
 
+const SIGNUP_REPLY: QuickReply = { label: "Criar conta de teste", message: "criar conta" };
+
+// Atalhos dentro do cadastro: as duas unicas respostas que o visitante nao adivinha.
+const SIGNUP_CPF_REPLIES: QuickReply[] = [
+  { label: "Gera um CPF pra mim", message: "gera um pra mim" },
+];
+const SIGNUP_CEP_REPLIES: QuickReply[] = [
+  { label: "Pular", message: "pular", variant: "subtle" },
+];
+
+const SIGNUP_CANCEL: QuickReply = { label: "Cancelar", message: "cancelar", variant: "subtle" };
+
 // Ultima mensagem do assistente e uma pergunta de sim/nao ("Deseja solicitar aumento?")
 const YES_NO_QUESTION = /(\b(deseja|gostaria)\b[^?]*\?\s*$)|(responda sim ou n[aã]o)/i;
 
@@ -81,6 +98,13 @@ function flowReplies(state: OrchestratorState): QuickReply[] {
       return CURRENCIES_WITH_BRL;
     case "credit_increase_flow":
       return LIMIT_AMOUNTS;
+    case "signup_cpf":
+      return [...SIGNUP_CPF_REPLIES, SIGNUP_CANCEL];
+    case "signup_cep":
+      return [...SIGNUP_CEP_REPLIES, SIGNUP_CANCEL];
+    case "signup_name":
+    case "signup_birthdate":
+      return [SIGNUP_CANCEL];
     default:
       return [];
   }
@@ -91,8 +115,22 @@ export function getQuickReplies(
   isAuthenticated: boolean,
   availableActions: string[],
   hasPendingOffer: boolean,
-  lastAssistantMessage: string | null
+  lastAssistantMessage: string | null,
+  personas: DemoPersona[] = [],
+  signupEnabled = false
 ): QuickReply[] {
+  // No celular nao ha painel lateral: os chips sao a unica porta de entrada visivel
+  // para quem nao conhece nenhum CPF desta base.
+  if (state === "collecting_cpf" || state === "welcome") {
+    const personaChips: QuickReply[] = personas.map((persona) => ({
+      label: `Entrar como ${persona.primeiro_nome} (${persona.score})`,
+      message: "",
+      personaId: persona.id,
+    }));
+    if (signupEnabled) personaChips.push(SIGNUP_REPLY);
+    return personaChips;
+  }
+
   if (state === "authenticated") {
     if (!isAuthenticated) return [];
     const menu = availableActions
@@ -116,15 +154,20 @@ export function QuickReplies({
   availableActions,
   hasPendingOffer,
   lastAssistantMessage,
+  personas = [],
+  signupEnabled = false,
   disabled,
   onSelect,
+  onSelectPersona,
 }: QuickRepliesProps) {
   const replies = getQuickReplies(
     state,
     isAuthenticated,
     availableActions,
     hasPendingOffer,
-    lastAssistantMessage
+    lastAssistantMessage,
+    personas,
+    signupEnabled
   );
 
   if (replies.length === 0) return null;
@@ -140,7 +183,9 @@ export function QuickReplies({
           key={reply.label}
           type="button"
           disabled={disabled}
-          onClick={() => onSelect(reply.message)}
+          onClick={() =>
+            reply.personaId ? onSelectPersona?.(reply.personaId) : onSelect(reply.message)
+          }
           className={cn(
             "h-8 shrink-0 whitespace-nowrap rounded border px-3 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-navy/40 disabled:cursor-not-allowed disabled:opacity-50",
             reply.variant === "subtle"

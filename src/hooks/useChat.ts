@@ -4,7 +4,14 @@ import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { apiService } from "@/services/api.service";
 import { describeApiDetail, generateId } from "@/lib/utils";
 import type { ChatMessage, MessageVariant } from "@/types/chat";
-import type { OrchestratorState, AgentType, ApiError, UnifiedChatResponse } from "@/types/api";
+import type {
+  OrchestratorState,
+  AgentType,
+  ApiError,
+  UnifiedChatResponse,
+  DemoPersona,
+  SessionSnapshot,
+} from "@/types/api";
 import { AxiosError } from "axios";
 
 const INIT_MAX_ATTEMPTS = 3;
@@ -56,6 +63,11 @@ export function describeApiError(err: unknown): string {
 
 interface UseChatReturn {
   messages: ChatMessage[];
+  /** Clientes de demonstracao; vazio quando o back-end nao esta em modo demo. */
+  personas: DemoPersona[];
+  demoNotice: string | null;
+  signupEnabled: boolean;
+  loginAsPersona: (personaId: string) => Promise<void>;
   isLoading: boolean;
   /** Sessao aberta com sucesso no back-end */
   isReady: boolean;
@@ -88,6 +100,9 @@ export function useChat(): UseChatReturn {
   const [availableActions, setAvailableActions] = useState<string[]>([]);
   const [hasPendingOffer, setHasPendingOffer] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [personas, setPersonas] = useState<DemoPersona[]>([]);
+  const [demoNotice, setDemoNotice] = useState<string | null>(null);
+  const [signupEnabled, setSignupEnabled] = useState(false);
   const initStartedRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -134,6 +149,25 @@ export function useChat(): UseChatReturn {
     [addMessage]
   );
 
+  const applySnapshot = useCallback((snapshot: SessionSnapshot) => {
+    setSessionId(snapshot.session_id);
+    setCurrentState(snapshot.state);
+    setCurrentAgent(snapshot.current_agent);
+    setIsAuthenticated(snapshot.authenticated);
+    setUserName(snapshot.user_name ?? null);
+    setAvailableActions(snapshot.available_actions ?? []);
+    setHasPendingOffer(false);
+    setMessages(
+      snapshot.messages.map((m) => ({
+        id: generateId(),
+        role: m.role,
+        content: m.content,
+        timestamp: new Date(),
+        variant: "default" as MessageVariant,
+      }))
+    );
+  }, []);
+
   const initializeChat = useCallback(async () => {
     if (isInitialized || initStartedRef.current) return;
     initStartedRef.current = true;
@@ -144,6 +178,19 @@ export function useChat(): UseChatReturn {
     const wakeUpTimer = setTimeout(() => setIsWakingUp(true), WAKE_UP_NOTICE_MS);
 
     try {
+      // Recarregar a pagina nao pode custar a conversa: tenta retomar antes de abrir
+      // uma sessao nova. 404 (expirada ou servidor reiniciado) cai no init normal.
+      try {
+        const snapshot = await apiService.resumeSession();
+        if (snapshot) {
+          applySnapshot(snapshot);
+          setIsInitialized(true);
+          return;
+        }
+      } catch {
+        // Retomada e um atalho, nunca um bloqueio.
+      }
+
       for (let attempt = 1; attempt <= INIT_MAX_ATTEMPTS; attempt++) {
         try {
           const response = await apiService.initUnifiedChat();
@@ -169,11 +216,45 @@ export function useChat(): UseChatReturn {
       setIsWakingUp(false);
       setIsLoading(false);
     }
-  }, [isInitialized, applyResponse, addMessage]);
+  }, [isInitialized, applyResponse, applySnapshot, addMessage]);
 
   useEffect(() => {
     initializeChat();
   }, [initializeChat]);
+
+  // Personas sao carregadas em paralelo e ignoradas em silencio fora do modo demo:
+  // o chat precisa funcionar identico quando a demonstracao esta desligada.
+  useEffect(() => {
+    if (!isInitialized) return;
+    let cancelled = false;
+
+    void apiService.getPersonas().then((data) => {
+      if (cancelled || !data?.demo_mode) return;
+      setPersonas(data.personas);
+      setDemoNotice(data.aviso);
+      setSignupEnabled(data.signup_enabled);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isInitialized]);
+
+  const loginAsPersona = useCallback(
+    async (personaId: string) => {
+      if (isLoading) return;
+      setIsLoading(true);
+      try {
+        const response = await apiService.demoLogin(personaId);
+        applyResponse(response);
+      } catch (err) {
+        addMessage("assistant", describeApiError(err), "error");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [isLoading, applyResponse, addMessage]
+  );
 
   const sendMessage = useCallback(
     async (message: string) => {
@@ -218,6 +299,10 @@ export function useChat(): UseChatReturn {
 
   return {
     messages,
+    personas,
+    demoNotice,
+    signupEnabled,
+    loginAsPersona,
     isLoading,
     isReady: isInitialized,
     isWakingUp,

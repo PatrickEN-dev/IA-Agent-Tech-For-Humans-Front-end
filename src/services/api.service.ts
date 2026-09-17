@@ -1,5 +1,13 @@
 import axios, { AxiosInstance, AxiosError } from "axios";
-import type { UnifiedChatResponse, ApiError } from "@/types/api";
+import type {
+  UnifiedChatResponse,
+  ApiError,
+  DemoPersonasResponse,
+  SessionSnapshot,
+  SignupRequest,
+  SignupResponse,
+  SuggestedCpfResponse,
+} from "@/types/api";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 const API_TIMEOUT = Number(process.env.NEXT_PUBLIC_API_TIMEOUT) || 30000;
@@ -75,6 +83,64 @@ class ApiService {
     if (response.token) {
       storageSet(TOKEN_KEY, response.token);
     }
+  }
+
+  /**
+   * Retoma a conversa de uma sessao anterior, se ela ainda existir no servidor.
+   *
+   * Chamado antes do `init` no carregamento da pagina: sem isso, um F5 descarta a
+   * conversa inteira e o cliente precisa se identificar de novo.
+   */
+  async resumeSession(): Promise<SessionSnapshot | null> {
+    const sessionId = this.getSessionId();
+    if (!sessionId) return null;
+
+    try {
+      const response = await this.client.get<SessionSnapshot>(
+        `/unified/session/${encodeURIComponent(sessionId)}`
+      );
+      return response.data;
+    } catch {
+      // 404 (sessao expirada) ou servidor reiniciado: segue para o init normal.
+      return null;
+    }
+  }
+
+  /** Personas de demonstracao. Devolve null fora do modo demo (o back-end responde 404). */
+  async getPersonas(): Promise<DemoPersonasResponse | null> {
+    try {
+      const response = await this.client.get<DemoPersonasResponse>("/demo/personas");
+      return response.data;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Entra como uma persona em uma unica chamada.
+   *
+   * Nao e o mesmo que enviar CPF e data como duas mensagens: isso exibiria o CPF como
+   * se o visitante o tivesse digitado e deixaria a sessao pela metade se a segunda
+   * chamada falhasse.
+   */
+  async demoLogin(personaId: string): Promise<UnifiedChatResponse> {
+    const response = await this.client.post<UnifiedChatResponse>("/unified/demo-login", {
+      session_id: this.getSessionId(),
+      persona_id: personaId,
+    });
+
+    this.remember(response.data);
+    return response.data;
+  }
+
+  async suggestCpf(): Promise<SuggestedCpfResponse> {
+    const response = await this.client.get<SuggestedCpfResponse>("/signup/suggested-cpf");
+    return response.data;
+  }
+
+  async signup(payload: SignupRequest): Promise<SignupResponse> {
+    const response = await this.client.post<SignupResponse>("/signup", payload);
+    return response.data;
   }
 
   async initUnifiedChat(): Promise<UnifiedChatResponse> {
