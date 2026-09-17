@@ -1,0 +1,19 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      patches:
+        update-types: ["patch"]
+      # React, Next e tipos sobem juntos ou nao sobem: separa-los gera PRs que
+      # quebram no CI por incompatibilidade de peer dependency.
+      react:
+        patterns: ["react", "react-dom", "@types/react", "@types/react-dom", "next"]
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly

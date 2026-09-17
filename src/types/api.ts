@@ -48,6 +48,7 @@ export type OrchestratorState =
   | "interview_expenses"
   | "interview_dependents"
   | "interview_debts"
+  | "interview_confirm"
   | "exchange_flow"
   | "exchange_from"
   | "exchange_to"

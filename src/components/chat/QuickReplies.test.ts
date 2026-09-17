@@ -112,3 +112,11 @@ describe("getQuickReplies autenticado", () => {
     expect(fora.some((r) => r.message === "cancelar")).toBe(false);
   });
 });
+
+describe("getQuickReplies na confirmação da entrevista", () => {
+  it("oferece aceitar ou refazer, já que o resumo está na tela", () => {
+    const replies = getQuickReplies("interview_confirm", true, [], false, null);
+    expect(replies.map((r) => r.message)).toEqual(["sim", "não"]);
+    expect(replies[0].label).toContain("atualizar");
+  });
+});

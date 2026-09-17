@@ -49,6 +49,8 @@ function getPlaceholder(state: OrchestratorState): string {
       return "Número de dependentes";
     case "interview_debts":
       return "Possui dívidas em aberto? (sim ou não)";
+    case "interview_confirm":
+      return "Confirma os dados? (sim ou não)";
     case "exchange_from":
       return "Moeda, ex.: dólar, euro, USD";
     case "exchange_to":

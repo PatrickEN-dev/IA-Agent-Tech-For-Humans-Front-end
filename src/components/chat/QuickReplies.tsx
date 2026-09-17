@@ -92,6 +92,12 @@ function flowReplies(state: OrchestratorState): QuickReply[] {
       return DEPENDENTS;
     case "interview_debts":
       return YES_NO;
+    case "interview_confirm":
+      // O resumo ja esta na tela; o cliente so precisa aceitar ou refazer.
+      return [
+        { label: "Sim, pode atualizar", message: "sim" },
+        { label: "Não, quero refazer", message: "não", variant: "subtle" },
+      ];
     case "exchange_from":
       return CURRENCIES;
     case "exchange_to":
